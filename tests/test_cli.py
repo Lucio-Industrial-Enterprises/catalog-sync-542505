@@ -1,0 +1,42 @@
+from pathlib import Path
+import subprocess
+import sys
+import unittest
+
+
+class CliTests(unittest.TestCase):
+    def quote(self, *args):
+        return subprocess.run(
+            [sys.executable, "-m", "warehouse.cli", *args],
+            cwd=Path(__file__).resolve().parents[1],
+            capture_output=True,
+            text=True,
+        )
+
+    def test_default_and_explicit_standard(self):
+        for zone, expected in (("local", "$8.00
+"), ("regional", "$11.00
+")):
+            for options in ((), ("--service", "standard")):
+                with self.subTest(zone=zone, options=options):
+                    result = self.quote("2", zone, *options)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout, expected)
+                    self.assertEqual(result.stderr, "")
+
+    def test_express(self):
+        for zone, expected in (("local", "$15.00
+"), ("regional", "$18.00
+")):
+            with self.subTest(zone=zone):
+                result = self.quote("2", zone, "--service", "express")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout, expected)
+                self.assertEqual(result.stderr, "")
+
+    def test_unknown_service(self):
+        result = self.quote("2", "local", "--service", "overnight")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("invalid choice", result.stderr)
+        self.assertIn("overnight", result.stderr)
