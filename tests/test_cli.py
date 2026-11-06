@@ -14,9 +14,7 @@ class CliTests(unittest.TestCase):
         )
 
     def test_default_and_explicit_standard(self):
-        for zone, expected in (("local", "$8.00
-"), ("regional", "$11.00
-")):
+        for zone, expected in (("local", "$8.00\n"), ("regional", "$11.00\n")):
             for options in ((), ("--service", "standard")):
                 with self.subTest(zone=zone, options=options):
                     result = self.quote("2", zone, *options)
@@ -25,9 +23,7 @@ class CliTests(unittest.TestCase):
                     self.assertEqual(result.stderr, "")
 
     def test_express(self):
-        for zone, expected in (("local", "$15.00
-"), ("regional", "$18.00
-")):
+        for zone, expected in (("local", "$15.00\n"), ("regional", "$18.00\n")):
             with self.subTest(zone=zone):
                 result = self.quote("2", zone, "--service", "express")
                 self.assertEqual(result.returncode, 0, result.stderr)
